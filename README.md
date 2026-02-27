@@ -1,1 +1,1 @@
-# EmulatorJS
+# EmulatorJS-NES
