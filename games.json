@@ -8,26 +8,31 @@
   {
     "title": "Super Mario Bros. 3",
     "rom": "Super Mario Bros. 3 (J) (V1.1) [!].nes",
-    "core": "nes"
+    "core": "nes",
+    "thumbnail": "smb3.png"
   },
   {
     "title": "Super Mario Collection Version 1.1",
     "rom": "Super Mario Collection Version 1.1 (J).smc",
-    "core": "snes"
+    "core": "snes",
+    "thumbnail": "smc.png"
   },
   {
     "title": "Super Mario Kart",
     "rom": "Super Mario Kart (J).smc",
-    "core": "snes"
+    "core": "snes",
+    "thumbnail": "smk.png"
   },
   {
     "title": "Super Mario RPG Version 1.0",
     "rom": "Super Mario RPG - Version 1.0 (J).smc",
-    "core": "snes"
+    "core": "snes",
+    "thumbnail": "smrpg.png"
   },
   {
     "title": "Super Mario World",
     "rom": "Super Mario World (J).smc",
-    "core": "snes"
+    "core": "snes",
+    "thumbnail": "smw.png"
   }
 ]
