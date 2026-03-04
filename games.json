@@ -2,7 +2,8 @@
   {
     "title": "Super Mario Bros",
     "rom": "Super Mario Bros.nes",
-    "core": "nes"
+    "core": "nes",
+    "thumbnail": "smb.png"
   },
   {
     "title": "Super Mario Bros. 3",
