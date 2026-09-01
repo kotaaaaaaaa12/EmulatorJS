@@ -8,7 +8,7 @@ const CORE_ALIASES = Object.freeze({
   mame: "mame2003"
 });
 
-const DATA_ROOT = "/data";
+const DATA_ROOT = "../data";
 const LEGACY_ROOT = "..";
 const message = document.getElementById("player-message");
 let localObjectUrl = "";
@@ -45,16 +45,29 @@ function safeRelativeAsset(folder, filename, root = DATA_ROOT) {
 async function firstExistingAsset(paths) {
   for (const path of paths) {
     try {
-      const response = await fetch(path, { method: "HEAD", cache: "no-store" });
-      if (response.ok) {
-        return path;
+      const response = await fetch(path, {
+        method: "GET",
+        cache: "no-store",
+        headers: { Range: "bytes=0-0" }
+      });
+
+      if (!response.ok && response.status !== 206) {
+        continue;
       }
+
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      if (contentType.includes("text/html")) {
+        console.warn("Rejected HTML response while probing ROM:", path);
+        continue;
+      }
+
+      return path;
     } catch (error) {
       console.debug("Asset probe failed:", path, error);
     }
   }
-  // Keep the organized path as the final fallback so EmulatorJS can surface the real load error.
-  return paths[0] || "";
+
+  throw new Error("ROM file could not be loaded from the configured path.");
 }
 
 async function fetchFirstAvailableJson(paths) {
@@ -134,16 +147,12 @@ function startEmulator(game, gameUrl, requestedThreads) {
   window.EJS_gameUrl = gameUrl;
   window.EJS_core = core;
   window.EJS_pathtodata = dataPath;
-  window.EJS_startOnLoaded = true;
+  window.EJS_startOnLoaded = false;
   window.EJS_language = "ja-JP";
   window.EJS_threads = threads;
   window.EJS_askBeforeExit = false;
   window.EJS_disableAutoUnload = false;
-  window.EJS_cacheConfig = {
-    enabled: true,
-    cacheMaxSizeMB: 4096,
-    cacheMaxAgeMins: 7200
-  };
+  window.EJS_CacheLimit = 4096;
   window.EJS_Buttons = {
     playPause: true,
     restart: true,
