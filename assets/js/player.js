@@ -2,91 +2,81 @@
 
 const DEFAULT_EJS_VERSION = "4.2.3";
 const DEFAULT_EJS_DATA_PATH = `https://cdn.emulatorjs.org/${DEFAULT_EJS_VERSION}/data/`;
-const THREADS_REQUIRED_CORES = new Set(["psp", "ppsspp", "dos", "dosbox_pure", "3ds", "azahar"]);
+
+const THREADS_REQUIRED_CORES = new Set([
+  "psp",
+  "ppsspp",
+  "dos",
+  "dosbox_pure",
+  "3ds",
+  "azahar"
+]);
+
 const CORE_ALIASES = Object.freeze({
   gbc: "gb",
   mame: "mame2003"
 });
 
-const DATA_ROOT = "../data";
-const LEGACY_ROOT = "..";
 const message = document.getElementById("player-message");
 let localObjectUrl = "";
 let emulatorStarted = false;
 
 function showMessage(text, isError = false) {
+  if (!message) return;
   message.textContent = text;
   message.classList.toggle("error", isError);
   message.classList.remove("hidden");
 }
 
 function hideMessage() {
+  if (!message) return;
   message.classList.add("hidden");
+  message.classList.remove("error");
 }
 
 function notifyParent(type, detail = {}) {
-  if (window.parent === window) {
-    return;
-  }
+  if (window.parent === window) return;
   window.parent.postMessage({ type, ...detail }, window.location.origin);
 }
 
-function safeRelativeAsset(folder, filename, root = DATA_ROOT) {
-  if (typeof filename !== "string" || filename.length === 0) {
-    return "";
-  }
+function encodeAssetPath(folder, filename) {
+  if (typeof filename !== "string" || filename.length === 0) return "";
+
   const encoded = filename
     .split("/")
     .map(part => encodeURIComponent(part))
     .join("/");
-  return `${root}/${folder}/${encoded}`;
+
+  return `/data/${folder}/${encoded}`;
 }
 
-async function firstExistingAsset(paths) {
-  for (const path of paths) {
-    try {
-      const response = await fetch(path, {
-        method: "GET",
-        cache: "no-store",
-        headers: { Range: "bytes=0-0" }
-      });
-
-      if (!response.ok && response.status !== 206) {
-        continue;
-      }
-
-      const contentType = (response.headers.get("content-type") || "").toLowerCase();
-      if (contentType.includes("text/html")) {
-        console.warn("Rejected HTML response while probing ROM:", path);
-        continue;
-      }
-
-      return path;
-    } catch (error) {
-      console.debug("Asset probe failed:", path, error);
-    }
-  }
-
-  throw new Error("ROM file could not be loaded from the configured path.");
-}
-
-async function fetchFirstAvailableJson(paths) {
+async function fetchGames() {
+  const candidates = ["/data/games.json", "/games.json"];
   let lastError = null;
 
-  for (const path of paths) {
+  for (const path of candidates) {
     try {
-      const response = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      const response = await fetch(`${path}?v=${Date.now()}`, {
+        cache: "no-store"
+      });
+
       if (!response.ok) {
         lastError = new Error(`${path} returned HTTP ${response.status}.`);
         continue;
       }
-      return await response.json();
+
+      const games = await response.json();
+      if (!Array.isArray(games)) {
+        throw new Error(`${path} is not an array.`);
+      }
+
+      return games;
     } catch (error) {
       lastError = error;
     }
   }
 
-  throw lastError || new Error("No game database could be loaded.");
+  throw lastError || new Error("Could not load games.json.");
 }
 
 function resolveDataPath(game) {
@@ -94,7 +84,10 @@ function resolveDataPath(game) {
     return game.dataPath.endsWith("/") ? game.dataPath : `${game.dataPath}/`;
   }
 
-  if (typeof game.ejsVersion === "string" && /^[A-Za-z0-9._-]+$/.test(game.ejsVersion)) {
+  if (
+    typeof game.ejsVersion === "string" &&
+    /^[A-Za-z0-9._-]+$/.test(game.ejsVersion)
+  ) {
     return `https://cdn.emulatorjs.org/${game.ejsVersion}/data/`;
   }
 
@@ -103,20 +96,38 @@ function resolveDataPath(game) {
 
 function configureOptionalOptions(game) {
   if (game.bios) {
-    window.EJS_biosUrl = safeRelativeAsset("bios", game.bios);
+    window.EJS_biosUrl = new URL(
+      encodeAssetPath("bios", game.bios),
+      window.location.origin
+    ).href;
   }
+
   if (game.gameParent) {
-    window.EJS_gameParentUrl = safeRelativeAsset("roms", game.gameParent);
+    window.EJS_gameParentUrl = new URL(
+      encodeAssetPath("roms", game.gameParent),
+      window.location.origin
+    ).href;
   }
+
   if (game.patch) {
-    window.EJS_gamePatchUrl = safeRelativeAsset("roms", game.patch);
+    window.EJS_gamePatchUrl = new URL(
+      encodeAssetPath("roms", game.patch),
+      window.location.origin
+    ).href;
   }
-  if (Number.isInteger(game.videoRotation) && game.videoRotation >= 0 && game.videoRotation <= 3) {
+
+  if (
+    Number.isInteger(game.videoRotation) &&
+    game.videoRotation >= 0 &&
+    game.videoRotation <= 3
+  ) {
     window.EJS_videoRotation = game.videoRotation;
   }
+
   if (typeof game.disableCue === "boolean") {
     window.EJS_disableCue = game.disableCue;
   }
+
   if (typeof game.forceLegacyCores === "boolean") {
     window.EJS_forceLegacyCores = game.forceLegacyCores;
   }
@@ -124,7 +135,7 @@ function configureOptionalOptions(game) {
 
 function startEmulator(game, gameUrl, requestedThreads) {
   if (emulatorStarted) {
-    throw new Error("The emulator has already been started in this player frame.");
+    throw new Error("The emulator has already been started.");
   }
 
   if (!game || !Number.isInteger(game.id) || !game.core || !game.title) {
@@ -132,15 +143,20 @@ function startEmulator(game, gameUrl, requestedThreads) {
   }
 
   const core = CORE_ALIASES[game.core] || game.core;
-  const threadSupport = window.crossOriginIsolated === true && typeof window.SharedArrayBuffer === "function";
+  const threadSupport =
+    window.crossOriginIsolated === true &&
+    typeof window.SharedArrayBuffer === "function";
   const threads = requestedThreads && threadSupport;
 
   if (THREADS_REQUIRED_CORES.has(game.core) && !threads) {
-    throw new Error(`${game.core} requires Threads, but SharedArrayBuffer is unavailable.`);
+    throw new Error(
+      `${game.core} requires Threads, but SharedArrayBuffer is unavailable.`
+    );
   }
 
   const dataPath = resolveDataPath(game);
 
+  // Keep the player configuration intentionally close to the official EmulatorJS demo.
   window.EJS_player = "#game";
   window.EJS_gameID = game.id;
   window.EJS_gameName = game.title;
@@ -150,38 +166,18 @@ function startEmulator(game, gameUrl, requestedThreads) {
   window.EJS_startOnLoaded = true;
   window.EJS_language = "ja-JP";
   window.EJS_threads = threads;
-  window.EJS_askBeforeExit = false;
   window.EJS_DEBUG_XX = true;
-  window.EJS_disableAutoUnload = false;
-  window.EJS_Buttons = {
-    playPause: true,
-    restart: true,
-    mute: true,
-    settings: true,
-    fullscreen: true,
-    saveState: true,
-    loadState: true,
-    screenRecord: false,
-    gamepad: true,
-    cheat: false,
-    volume: true,
-    saveSavFiles: true,
-    loadSavFiles: true,
-    quickSave: true,
-    quickLoad: true,
-    screenshot: true,
-    cacheManager: false,
-    exitEmulation: true
-  };
 
   configureOptionalOptions(game);
 
   window.EJS_ready = () => {
     hideMessage();
+    notifyParent("retro-vault-player-ready");
   };
 
   window.EJS_onGameStart = () => {
     hideMessage();
+    notifyParent("retro-vault-player-start");
   };
 
   window.EJS_onExit = () => {
@@ -190,10 +186,11 @@ function startEmulator(game, gameUrl, requestedThreads) {
 
   const loader = document.createElement("script");
   loader.src = `${dataPath}loader.js`;
+
   loader.addEventListener("error", () => {
-    const error = new Error("Failed to load EmulatorJS loader.js.");
-    showMessage(error.message, true);
-    notifyParent("retro-vault-player-error", { message: error.message });
+    const text = "Failed to load EmulatorJS loader.js.";
+    showMessage(text, true);
+    notifyParent("retro-vault-player-error", { message: text });
   });
 
   emulatorStarted = true;
@@ -202,25 +199,29 @@ function startEmulator(game, gameUrl, requestedThreads) {
 
 async function bootLibraryGame(params, requestedThreads) {
   const gameId = Number(params.get("id"));
+
   if (!Number.isInteger(gameId) || gameId <= 0) {
     throw new Error("Invalid game id.");
   }
 
-  const games = await fetchFirstAvailableJson([`${DATA_ROOT}/games.json`, `${LEGACY_ROOT}/games.json`]);
-  if (!Array.isArray(games)) {
-    throw new Error("games.json is not an array.");
-  }
-
+  const games = await fetchGames();
   const game = games.find(item => item.id === gameId);
+
   if (!game) {
     throw new Error(`Game id ${gameId} was not found.`);
   }
 
-  // Prefer data/roms, but automatically fall back to the original root-level roms directory.
-  const gameUrl = await firstExistingAsset([
-    safeRelativeAsset("roms", game.rom, DATA_ROOT),
-    safeRelativeAsset("roms", game.rom, LEGACY_ROOT)
-  ]);
+  if (typeof game.rom !== "string" || game.rom.length === 0) {
+    throw new Error(`Game id ${gameId} does not have a ROM filename.`);
+  }
+
+  // Pass an absolute same-origin URL directly to EmulatorJS.
+  // This avoids ambiguity about whether a relative ROM path is resolved
+  // against player.html or the CDN-loaded loader.js.
+  const gameUrl = new URL(
+    encodeAssetPath("roms", game.rom),
+    window.location.origin
+  ).href;
 
   startEmulator(game, gameUrl, requestedThreads);
 }
@@ -229,10 +230,11 @@ function bootLocalGame(requestedThreads) {
   showMessage("WAITING FOR LOCAL ROM...");
 
   const onMessage = event => {
-    if (event.origin !== window.location.origin || event.source !== window.parent) {
-      return;
-    }
-    if (event.data?.type !== "retro-vault-local-rom") {
+    if (
+      event.origin !== window.location.origin ||
+      event.source !== window.parent ||
+      event.data?.type !== "retro-vault-local-rom"
+    ) {
       return;
     }
 
@@ -246,15 +248,15 @@ function bootLocalGame(requestedThreads) {
         throw new Error("The local ROM file could not be read.");
       }
 
-      // EmulatorJS supports blob: game URLs. EJS_gameName keeps saves tied to the local filename/title.
       localObjectUrl = URL.createObjectURL(file);
+      hideMessage();
       startEmulator(game, localObjectUrl, requestedThreads);
     } catch (error) {
       console.error(error);
-      showMessage(error.message || "Failed to open the local ROM.", true);
-      notifyParent("retro-vault-player-error", {
-        message: error.message || "Failed to open the local ROM."
-      });
+
+      const text = error?.message || "Failed to open the local ROM.";
+      showMessage(text, true);
+      notifyParent("retro-vault-player-error", { message: text });
     }
   };
 
@@ -264,6 +266,8 @@ function bootLocalGame(requestedThreads) {
 
 async function boot() {
   try {
+    hideMessage();
+
     const params = new URLSearchParams(window.location.search);
     const requestedThreads = params.get("threads") !== "0";
 
@@ -275,16 +279,19 @@ async function boot() {
     await bootLibraryGame(params, requestedThreads);
   } catch (error) {
     console.error(error);
-    showMessage(error.message || "Failed to start the emulator.", true);
-    notifyParent("retro-vault-player-error", {
-      message: error.message || "Failed to start the emulator."
-    });
+
+    const text = error?.message || "Failed to start the emulator.";
+    showMessage(text, true);
+    notifyParent("retro-vault-player-error", { message: text });
   }
 }
 
 window.addEventListener("pagehide", () => {
   try {
-    if (window.EJS_emulator && typeof window.EJS_emulator.exit === "function") {
+    if (
+      window.EJS_emulator &&
+      typeof window.EJS_emulator.exit === "function"
+    ) {
       window.EJS_emulator.exit();
     }
   } catch (error) {
