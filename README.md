@@ -149,3 +149,8 @@ This build is ready for Cloudflare Pages. `_headers` is included at the deploy r
 The previous automatic COI Service Worker bootstrap has been removed. Cloudflare Pages should provide cross-origin isolation directly through response headers, avoiding first-load reload loops and Safari/iPad Service Worker edge cases.
 
 Deploy the *contents* of this directory as the Pages output root so that `index.html` and `_headers` are both at `/`.
+
+
+## Cloudflare Pages deployment root
+
+The Pages output directory must be the directory containing `index.html`, `_headers`, `assets/`, `data/`, and `pages/`. Do not publish the parent directory. This build includes a visible boot probe: if JavaScript fails, `LOADING RETRO VAULT…` remains visible instead of a blank page.

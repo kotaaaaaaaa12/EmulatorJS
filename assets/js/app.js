@@ -430,7 +430,7 @@ function detectThreadSupport() {
     elements.threadsToggle.disabled = true;
     elements.threadsStatus.textContent = "UNAVAILABLE";
     elements.threadsStatus.className = "thread-status unavailable";
-    setNotice("Threads are unavailable in this browser session. The site will continue in single-threaded mode. If this host supports Service Workers, one automatic reload may be needed after the first visit.");
+    setNotice("Threads are unavailable in this browser session. The site will continue in single-threaded mode. On Cloudflare Pages, check that the _headers file is deployed.");
     return;
   }
 
@@ -792,3 +792,10 @@ window.addEventListener("message", event => {
 
 detectThreadSupport();
 loadGames();
+
+
+// Remove the inline boot probe only after the main script has initialized successfully.
+const bootProbe = document.getElementById("boot-probe");
+if (bootProbe) {
+  bootProbe.remove();
+}
