@@ -147,12 +147,12 @@ function startEmulator(game, gameUrl, requestedThreads) {
   window.EJS_gameUrl = gameUrl;
   window.EJS_core = core;
   window.EJS_pathtodata = dataPath;
-  window.EJS_startOnLoaded = false;
+  window.EJS_startOnLoaded = true;
   window.EJS_language = "ja-JP";
   window.EJS_threads = threads;
   window.EJS_askBeforeExit = false;
+  window.EJS_DEBUG_XX = true;
   window.EJS_disableAutoUnload = false;
-  window.EJS_CacheLimit = 4096;
   window.EJS_Buttons = {
     playPause: true,
     restart: true,
@@ -190,7 +190,6 @@ function startEmulator(game, gameUrl, requestedThreads) {
 
   const loader = document.createElement("script");
   loader.src = `${dataPath}loader.js`;
-  loader.async = true;
   loader.addEventListener("error", () => {
     const error = new Error("Failed to load EmulatorJS loader.js.");
     showMessage(error.message, true);
