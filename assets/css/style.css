@@ -34,7 +34,7 @@ body {
     radial-gradient(circle at 90% 5%, rgba(255, 45, 85, 0.07), transparent 28rem),
     var(--bg);
   color: var(--text);
-  font-family: "Share Tech Mono", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 }
 
 button,
@@ -69,7 +69,7 @@ button {
 }
 
 .logo {
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: clamp(1.35rem, 5vw, 2.8rem);
   letter-spacing: 0.08em;
   background: linear-gradient(135deg, var(--accent-2), var(--accent-3) 52%, var(--accent));
@@ -142,7 +142,7 @@ button {
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.48rem;
   letter-spacing: 0.07em;
   transition: transform 120ms ease, border-color 120ms ease, color 120ms ease, background 120ms ease;
@@ -178,7 +178,7 @@ button {
   color: var(--text);
   cursor: pointer;
   user-select: none;
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.47rem;
 }
 
@@ -260,7 +260,7 @@ button {
   padding: 4rem 1rem;
   text-align: center;
   color: var(--accent-2);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.68rem;
   animation: blink 1s step-end infinite;
 }
@@ -339,7 +339,7 @@ button {
   height: 100%;
   place-items: center;
   color: var(--muted);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.7rem;
   letter-spacing: 0.08em;
 }
@@ -378,7 +378,7 @@ button {
 .card-title {
   overflow: hidden;
   color: var(--text);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.54rem;
   line-height: 1.6;
   text-overflow: ellipsis;
@@ -399,7 +399,7 @@ button {
   padding: 4rem 2rem;
   text-align: center;
   color: var(--muted);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.68rem;
   line-height: 2;
 }
@@ -407,7 +407,7 @@ button {
 .empty-subtitle {
   margin-top: 1rem;
   color: #4b4b60;
-  font-family: "Share Tech Mono", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.85rem;
 }
 
@@ -455,7 +455,7 @@ button {
 .modal-title {
   overflow: hidden;
   color: var(--accent-2);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: clamp(0.62rem, 2vw, 0.9rem);
   line-height: 1.5;
   text-overflow: ellipsis;
@@ -475,7 +475,7 @@ button {
   background: transparent;
   color: var(--accent);
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.52rem;
 }
 
@@ -587,7 +587,7 @@ footer span {
   background: rgba(255, 230, 0, 0.05);
   color: var(--accent-3);
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.46rem;
   letter-spacing: 0.06em;
   transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
@@ -631,7 +631,7 @@ footer span {
 .core-picker-kicker,
 .core-picker-label {
   color: var(--muted);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.45rem;
   letter-spacing: 0.08em;
 }
@@ -639,7 +639,7 @@ footer span {
 .core-picker-title {
   margin-top: 0.55rem;
   color: var(--text);
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: clamp(0.68rem, 2vw, 0.9rem);
   line-height: 1.5;
 }
@@ -693,7 +693,7 @@ footer span {
   min-height: 38px;
   padding: 0.5rem 0.85rem;
   cursor: pointer;
-  font-family: "Press Start 2P", monospace;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 0.46rem;
 }
 

@@ -141,3 +141,11 @@ EmulatorJS mutates the document and owns long-lived resources such as WebAssembl
 ## Legacy layout compatibility
 
 The app prefers `data/games.json`, `data/roms/`, and `data/thumbs/`. It also automatically falls back to the original root-level `games.json`, `roms/`, and `thumbs/` paths, so the site keeps working while files are being reorganized.
+
+## Cloudflare Pages
+
+This build is ready for Cloudflare Pages. `_headers` is included at the deploy root and enables the COOP/COEP headers required for SharedArrayBuffer/Threads.
+
+The previous automatic COI Service Worker bootstrap has been removed. Cloudflare Pages should provide cross-origin isolation directly through response headers, avoiding first-load reload loops and Safari/iPad Service Worker edge cases.
+
+Deploy the *contents* of this directory as the Pages output root so that `index.html` and `_headers` are both at `/`.

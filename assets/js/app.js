@@ -95,6 +95,22 @@ const CORE_LABELS = Object.freeze({
 const THREADS_REQUIRED_CORES = new Set(["psp", "ppsspp", "dos", "dosbox_pure", "3ds", "azahar"]);
 const STORAGE_KEY = "retro-vault-threads";
 
+function storageGet(key) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch (error) {
+    console.debug("localStorage read unavailable:", error);
+    return null;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (error) {
+    console.debug("localStorage write unavailable:", error);
+  }
+}
 
 const UPLOAD_CORE_OPTIONS = Object.freeze([
   ["nes", "NES / Famicom"],
@@ -405,7 +421,7 @@ function setNotice(message) {
 function detectThreadSupport() {
   state.threadsAvailable = window.crossOriginIsolated === true && typeof window.SharedArrayBuffer === "function";
 
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = storageGet(STORAGE_KEY);
   state.threadsEnabled = saved === null ? true : saved === "true";
 
   if (!state.threadsAvailable) {
@@ -696,7 +712,7 @@ elements.search.addEventListener("input", event => {
 
 elements.threadsToggle.addEventListener("change", event => {
   state.threadsEnabled = Boolean(event.target.checked);
-  localStorage.setItem(STORAGE_KEY, String(state.threadsEnabled));
+  storageSet(STORAGE_KEY, String(state.threadsEnabled));
 });
 
 
