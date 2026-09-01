@@ -8,7 +8,7 @@ const CORE_ALIASES = Object.freeze({
   mame: "mame2003"
 });
 
-const DATA_ROOT = "../data";
+const DATA_ROOT = "/data";
 const LEGACY_ROOT = "..";
 const message = document.getElementById("player-message");
 let localObjectUrl = "";

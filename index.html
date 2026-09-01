@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0a0a0f">
   <title>Retro Vault</title>
-  <link rel="stylesheet" href="./assets/css/style.css?v=20260901-6">
-  <script src="./assets/js/app.js?v=20260901-6" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260901-7" onerror="this.onerror=null;this.href='./assets/css/style.css?v=20260901-7'">
 </head>
 <body>
   <div id="boot-probe" style="position:fixed;z-index:99999;left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:10px 12px;background:#111;color:#fff;border:1px solid #444;font:12px/1.4 ui-monospace,monospace">LOADING RETRO VAULT…</div>
@@ -91,5 +93,51 @@
   <footer>
     POWERED BY <span>EMULATORJS</span>
   </footer>
+
+  <script>
+    (() => {
+      const probe = document.getElementById("boot-probe");
+      const showBootError = message => {
+        if (!probe) return;
+        probe.textContent = message;
+        probe.style.background = "#2a0d14";
+        probe.style.borderColor = "#ff5d72";
+        probe.style.color = "#fff";
+      };
+
+      window.addEventListener("error", event => {
+        if (event.filename && event.filename.includes("app.js")) {
+          showBootError(`APP ERROR: ${event.message || "Unknown JavaScript error"}`);
+        }
+      });
+
+      window.addEventListener("unhandledrejection", event => {
+        const reason = event.reason instanceof Error ? event.reason.message : String(event.reason || "Unknown promise rejection");
+        showBootError(`APP PROMISE ERROR: ${reason}`);
+      });
+
+      const sources = [
+        "/assets/js/app.js?v=20260901-7",
+        "./assets/js/app.js?v=20260901-7"
+      ];
+
+      const load = index => {
+        if (index >= sources.length) {
+          showBootError(`APP.JS FAILED TO LOAD · PATH: ${location.pathname}`);
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = sources[index];
+        script.async = false;
+        script.onerror = () => {
+          script.remove();
+          load(index + 1);
+        };
+        document.body.appendChild(script);
+      };
+
+      load(0);
+    })();
+  </script>
 </body>
 </html>

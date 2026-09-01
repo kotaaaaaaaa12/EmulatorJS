@@ -34,7 +34,7 @@ body {
     radial-gradient(circle at 90% 5%, rgba(255, 45, 85, 0.07), transparent 28rem),
     var(--bg);
   color: var(--text);
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: "Share Tech Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 button,
@@ -69,8 +69,8 @@ button {
 }
 
 .logo {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  font-size: clamp(1.35rem, 5vw, 2.8rem);
+  font-family: "Press Start 2P", ui-monospace, monospace;
+  font-size: clamp(1.1rem, 4.2vw, 2.25rem);
   letter-spacing: 0.08em;
   background: linear-gradient(135deg, var(--accent-2), var(--accent-3) 52%, var(--accent));
   background-clip: text;
