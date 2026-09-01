@@ -9,6 +9,7 @@ const CORE_ALIASES = Object.freeze({
 });
 
 const DATA_ROOT = "../data";
+const LEGACY_ROOT = "..";
 const message = document.getElementById("player-message");
 let localObjectUrl = "";
 let emulatorStarted = false;
@@ -30,7 +31,7 @@ function notifyParent(type, detail = {}) {
   window.parent.postMessage({ type, ...detail }, window.location.origin);
 }
 
-function safeRelativeAsset(folder, filename) {
+function safeRelativeAsset(folder, filename, root = DATA_ROOT) {
   if (typeof filename !== "string" || filename.length === 0) {
     return "";
   }
@@ -38,7 +39,41 @@ function safeRelativeAsset(folder, filename) {
     .split("/")
     .map(part => encodeURIComponent(part))
     .join("/");
-  return `${DATA_ROOT}/${folder}/${encoded}`;
+  return `${root}/${folder}/${encoded}`;
+}
+
+async function firstExistingAsset(paths) {
+  for (const path of paths) {
+    try {
+      const response = await fetch(path, { method: "HEAD", cache: "no-store" });
+      if (response.ok) {
+        return path;
+      }
+    } catch (error) {
+      console.debug("Asset probe failed:", path, error);
+    }
+  }
+  // Keep the organized path as the final fallback so EmulatorJS can surface the real load error.
+  return paths[0] || "";
+}
+
+async function fetchFirstAvailableJson(paths) {
+  let lastError = null;
+
+  for (const path of paths) {
+    try {
+      const response = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) {
+        lastError = new Error(`${path} returned HTTP ${response.status}.`);
+        continue;
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("No game database could be loaded.");
 }
 
 function resolveDataPath(game) {
@@ -163,12 +198,7 @@ async function bootLibraryGame(params, requestedThreads) {
     throw new Error("Invalid game id.");
   }
 
-  const response = await fetch(`${DATA_ROOT}/games.json?v=${Date.now()}`, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`games.json returned HTTP ${response.status}.`);
-  }
-
-  const games = await response.json();
+  const games = await fetchFirstAvailableJson([`${DATA_ROOT}/games.json`, `${LEGACY_ROOT}/games.json`]);
   if (!Array.isArray(games)) {
     throw new Error("games.json is not an array.");
   }
@@ -178,7 +208,13 @@ async function bootLibraryGame(params, requestedThreads) {
     throw new Error(`Game id ${gameId} was not found.`);
   }
 
-  startEmulator(game, safeRelativeAsset("roms", game.rom), requestedThreads);
+  // Prefer data/roms, but automatically fall back to the original root-level roms directory.
+  const gameUrl = await firstExistingAsset([
+    safeRelativeAsset("roms", game.rom, DATA_ROOT),
+    safeRelativeAsset("roms", game.rom, LEGACY_ROOT)
+  ]);
+
+  startEmulator(game, gameUrl, requestedThreads);
 }
 
 function bootLocalGame(requestedThreads) {

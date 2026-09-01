@@ -136,3 +136,8 @@ Nintendo 3DS appears in the current upstream demo but is not part of the pinned 
 ## Why the iframe exists
 
 EmulatorJS mutates the document and owns long-lived resources such as WebAssembly, audio, input listeners and animation loops. Every game is therefore launched inside `pages/player.html`. Closing the modal navigates that iframe to `about:blank`, tearing down the entire emulator document before another game starts.
+
+
+## Legacy layout compatibility
+
+The app prefers `data/games.json`, `data/roms/`, and `data/thumbs/`. It also automatically falls back to the original root-level `games.json`, `roms/`, and `thumbs/` paths, so the site keeps working while files are being reorganized.

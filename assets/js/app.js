@@ -444,14 +444,29 @@ function validateGame(game, index) {
   return errors;
 }
 
+async function fetchFirstAvailableJson(paths) {
+  let lastError = null;
+
+  for (const path of paths) {
+    try {
+      const response = await fetch(`${path}?v=${Date.now()}`, { cache: "no-store" });
+      if (!response.ok) {
+        lastError = new Error(`${path} returned HTTP ${response.status}`);
+        continue;
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("No game database could be loaded.");
+}
+
 async function loadGames() {
   try {
-    const response = await fetch(`./data/games.json?v=${Date.now()}`, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`games.json returned HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
+    // Prefer the organized layout, but keep compatibility with the original root-level games.json.
+    const data = await fetchFirstAvailableJson(["./data/games.json", "./games.json"]);
     if (!Array.isArray(data)) {
       throw new TypeError("games.json must contain an array.");
     }
@@ -537,14 +552,28 @@ function createGameCard(game, index) {
 
   if (game.thumbnail) {
     const image = document.createElement("img");
-    image.src = `./data/thumbs/${encodeURIComponent(game.thumbnail).replace(/%2F/gi, "/")}`;
+    const encodedThumbnail = encodeURIComponent(game.thumbnail).replace(/%2F/gi, "/");
+    const thumbnailSources = [
+      `./data/thumbs/${encodedThumbnail}`,
+      `./thumbs/${encodedThumbnail}`
+    ];
+    let thumbnailIndex = 0;
+
+    image.src = thumbnailSources[thumbnailIndex];
     image.alt = "";
     image.loading = "lazy";
     image.decoding = "async";
     image.addEventListener("error", () => {
+      thumbnailIndex += 1;
+      if (thumbnailIndex < thumbnailSources.length) {
+        image.src = thumbnailSources[thumbnailIndex];
+        return;
+      }
       image.remove();
-      thumbWrap.prepend(placeholder);
-    }, { once: true });
+      if (!thumbWrap.contains(placeholder)) {
+        thumbWrap.prepend(placeholder);
+      }
+    });
     thumbWrap.appendChild(image);
   } else {
     thumbWrap.appendChild(placeholder);

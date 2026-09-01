@@ -1,33 +1,66 @@
 "use strict";
 
 (() => {
+  if (window.top !== window.self) {
+    return;
+  }
+
   if (!("serviceWorker" in navigator) || !window.isSecureContext || window.crossOriginIsolated) {
     return;
   }
 
-  const reloadKey = "retro-vault-coi-reload";
-  const scriptUrl = document.currentScript?.src;
-  const appRoot = scriptUrl
-    ? new URL("../../", scriptUrl)
-    : new URL("./", window.location.href);
-  const workerUrl = new URL("coi-sw.js", appRoot);
+  const reloadKey = "retro-vault-coi-reload-v2";
 
-  navigator.serviceWorker.register(workerUrl, { scope: appRoot.pathname })
-    .then(registration => {
-      if (registration.active && !navigator.serviceWorker.controller && sessionStorage.getItem(reloadKey) !== "1") {
-        sessionStorage.setItem(reloadKey, "1");
-        window.location.reload();
-      }
-    })
-    .catch(error => {
-      console.warn("Cross-origin isolation service worker registration failed:", error);
-    });
-
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (sessionStorage.getItem(reloadKey) === "1") {
-      return;
+  function storageGet(key) {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
     }
-    sessionStorage.setItem(reloadKey, "1");
-    window.location.reload();
-  });
+  }
+
+  function storageSet(key, value) {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // Storage may be unavailable in private or restricted browsing contexts.
+    }
+  }
+
+  async function bootstrapCrossOriginIsolation() {
+    const scriptUrl = document.currentScript?.src || new URL("./assets/js/coi.js", window.location.href).href;
+    const appRoot = new URL("../../", scriptUrl);
+    const workerUrl = new URL("coi-sw.js", appRoot);
+
+    try {
+      const registration = await navigator.serviceWorker.register(workerUrl, { scope: appRoot.pathname });
+
+      if (navigator.serviceWorker.controller) {
+        return;
+      }
+
+      if (registration.active && storageGet(reloadKey) !== "1") {
+        storageSet(reloadKey, "1");
+        window.location.reload();
+        return;
+      }
+
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (storageGet(reloadKey) === "1") {
+          return;
+        }
+        storageSet(reloadKey, "1");
+        window.location.reload();
+      }, { once: true });
+    } catch (error) {
+      console.warn("Cross-origin isolation service worker registration failed:", error);
+    }
+  }
+
+  // Do not reload while the initial document is still being parsed/rendered.
+  if (document.readyState === "complete") {
+    bootstrapCrossOriginIsolation();
+  } else {
+    window.addEventListener("load", bootstrapCrossOriginIsolation, { once: true });
+  }
 })();
