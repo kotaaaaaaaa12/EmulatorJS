@@ -1,584 +1,98 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RETRO VAULT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Retro Vault</title>
+  <script src="./assets/js/coi.js?v=20260901-3"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg:       #0a0a0f;
-      --surface:  #12121a;
-      --border:   #1e1e2e;
-      --accent:   #ff2d55;
-      --accent2:  #0af;
-      --accent3:  #ffe600;
-      --text:     #e8e8f0;
-      --muted:    #555570;
-      --glow:     0 0 8px var(--accent2), 0 0 24px rgba(0,170,255,.3);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Share Tech Mono', monospace;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-
-
-    /* ── header ── */
-    header {
-      text-align: center;
-      padding: 3rem 1rem 2rem;
-      position: relative;
-    }
-
-    header::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3), var(--accent));
-      background-size: 200% 100%;
-      animation: rainbow 3s linear infinite;
-    }
-
-    @keyframes rainbow { to { background-position: 200% 0; } }
-
-    .logo {
-      font-family: 'Press Start 2P', monospace;
-      font-size: clamp(1.4rem, 5vw, 2.8rem);
-      letter-spacing: .08em;
-      background: linear-gradient(135deg, var(--accent2) 0%, var(--accent3) 50%, var(--accent) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: none;
-      filter: drop-shadow(0 0 12px rgba(0,170,255,.5));
-      animation: pulse 4s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%,100% { filter: drop-shadow(0 0 12px rgba(0,170,255,.5)); }
-      50%      { filter: drop-shadow(0 0 24px rgba(0,170,255,.9)); }
-    }
-
-    .subtitle {
-      margin-top: .7rem;
-      color: var(--muted);
-      font-size: .75rem;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-    }
-
-    /* ── filter bar ── */
-    #filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .5rem;
-      justify-content: center;
-      padding: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: rgba(10,10,15,.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .filter-btn {
-      font-family: 'Press Start 2P', monospace;
-      font-size: .5rem;
-      padding: .45rem .9rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      cursor: pointer;
-      transition: all .15s;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-    }
-
-    .filter-btn:hover,
-    .filter-btn.active {
-      border-color: var(--accent2);
-      color: var(--accent2);
-      box-shadow: var(--glow);
-      background: rgba(0,170,255,.07);
-    }
-
-    #search {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: .85rem;
-      padding: .4rem .8rem;
-      width: 220px;
-      transition: border-color .15s;
-    }
-
-    #search:focus {
-      outline: none;
-      border-color: var(--accent2);
-      box-shadow: var(--glow);
-    }
-
-    #search::placeholder { color: var(--muted); }
-
-    /* ── game grid ── */
-    #game-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 1.2rem;
-      padding: 2rem;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .game-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      position: relative;
-      transition: transform .2s, border-color .2s, box-shadow .2s;
-      overflow: hidden;
-      animation: cardIn .4s ease both;
-    }
-
-    @keyframes cardIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .game-card:hover {
-      transform: translateY(-4px) scale(1.02);
-      border-color: var(--accent2);
-      box-shadow: var(--glow), 0 12px 32px rgba(0,0,0,.6);
-      z-index: 2;
-    }
-
-    .game-card:hover .play-overlay { opacity: 1; }
-
-    .thumb-wrap {
-      aspect-ratio: 4/3;
-      overflow: hidden;
-      background: #0d0d18;
-      position: relative;
-    }
-
-    .thumb-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform .3s;
-    }
-
-    .game-card:hover .thumb-wrap img { transform: scale(1.06); }
-
-    .no-thumb {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Press Start 2P', monospace;
-      font-size: 2.5rem;
-      color: var(--muted);
-    }
-
-    .play-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,170,255,.18);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity .2s;
-    }
-
-    .play-icon {
-      width: 48px; height: 48px;
-      background: rgba(0,0,0,.7);
-      border: 2px solid var(--accent2);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-    }
-
-    .card-info {
-      padding: .6rem .7rem .8rem;
-    }
-
-    .card-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: .55rem;
-      line-height: 1.6;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .card-core {
-      margin-top: .35rem;
-      font-size: .65rem;
-      color: var(--accent3);
-      text-transform: uppercase;
-      letter-spacing: .15em;
-    }
-
-    /* ── empty state ── */
-    #empty-state {
-      display: none;
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--muted);
-      font-family: 'Press Start 2P', monospace;
-      font-size: .7rem;
-      line-height: 2;
-    }
-
-    /* ── loading ── */
-    #loading {
-      text-align: center;
-      padding: 4rem;
-      font-family: 'Press Start 2P', monospace;
-      font-size: .7rem;
-      color: var(--accent2);
-      animation: blink 1s step-end infinite;
-    }
-
-    @keyframes blink { 50% { opacity: 0; } }
-
-    /* ── modal overlay ── */
-    #modal {
-      display: none;
-      position: fixed; inset: 0;
-      z-index: 1000;
-      background: rgba(0,0,0,.92);
-      backdrop-filter: blur(6px);
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-
-    #modal.open { display: flex; }
-
-    #modal-header {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .5rem 0 .8rem;
-    }
-
-    #modal-title {
-      font-family: 'Press Start 2P', monospace;
-      font-size: .9rem;
-      color: var(--accent2);
-    }
-
-    #close-btn {
-      font-family: 'Press Start 2P', monospace;
-      font-size: .6rem;
-      padding: .5rem 1rem;
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      cursor: pointer;
-      transition: all .15s;
-    }
-
-    #close-btn:hover {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    #emulator-wrap {
-      width: 100%;
-      max-width: 900px;
-      aspect-ratio: 4/3;
-      background: #000;
-      border: 2px solid var(--border);
-      position: relative;
-      overflow: hidden;
-    }
-
-    #game-div {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* ── stats bar ── */
-    #stats {
-      text-align: center;
-      padding: .5rem;
-      font-size: .7rem;
-      color: var(--muted);
-    }
-
-    /* ── footer ── */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      border-top: 1px solid var(--border);
-      color: var(--muted);
-      font-size: .7rem;
-      margin-top: 2rem;
-    }
-  </style>
+  <link rel="stylesheet" href="./assets/css/style.css?v=20260901-3">
+  <script src="./assets/js/app.js?v=20260901-3" defer></script>
 </head>
 <body>
+  <header class="site-header">
+    <div class="logo">RETRO VAULT</div>
+    <div class="subtitle">INSERT COIN TO PLAY</div>
+  </header>
 
-<header>
-  <div class="logo">RETRO VAULT</div>
-  <div class="subtitle">▶ INSERT COIN TO PLAY ◀</div>
-</header>
+  <main>
+    <section id="toolbar" class="toolbar" aria-label="Game filters and emulator settings">
+      <label class="search-wrap" for="search">
+        <span class="sr-only">Search games</span>
+        <input id="search" type="search" placeholder="SEARCH GAMES..." autocomplete="off" spellcheck="false">
+      </label>
 
-<div id="filter-bar">
-  <input id="search" type="text" placeholder="SEARCH GAMES...">
-  <button class="filter-btn active" data-core="all">ALL</button>
-</div>
+      <div id="core-filters" class="core-filters" aria-label="System filters">
+        <button class="filter-btn active" type="button" data-core="all">ALL</button>
+      </div>
 
-<div id="loading">LOADING GAME LIST...</div>
-<div id="game-grid"></div>
-<div id="empty-state">
-  <div>NO GAMES FOUND</div>
-  <div style="margin-top:1rem;color:#333">game not found lol</div>
-</div>
-<div id="stats"></div>
+      <div class="thread-control">
+        <label class="switch-row" for="threads-toggle">
+          <input id="threads-toggle" type="checkbox" checked>
+          <span class="switch" aria-hidden="true"></span>
+          <span>THREADS</span>
+        </label>
+        <span id="threads-status" class="thread-status">CHECKING...</span>
+      </div>
 
-<!-- Emulator Modal -->
-<div id="modal">
-  <div id="modal-header">
-    <div id="modal-title">-</div>
-    <button id="close-btn">✕ CLOSE</button>
-  </div>
-  <div id="emulator-wrap">
-    <div id="game-div"></div>
-  </div>
-</div>
+      <button id="local-rom-btn" class="local-rom-btn" type="button">OPEN LOCAL ROM</button>
+      <input id="local-rom-input" class="sr-only" type="file" autocomplete="off">
+    </section>
 
-<footer>
-  POWERED BY <span style="color:var(--accent2)">EMULATORJS</span> &nbsp;|&nbsp;
-  ALL ROMS © THEIR RESPECTIVE OWNERS
-</footer>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="loading" class="loading">LOADING GAME LIST...</div>
+    <section id="game-grid" class="game-grid" aria-label="Games"></section>
 
-<!-- EmulatorJS CDN -->
-<script>
-  // ── Core mapping ──
-  // games.jsonのcoreフィールドに入れる値とEmulatorJSのsystemの対応
-  const CORE_LABELS = {
-    nes:        'NES',
-    snes:       'SNES',
-    gb:         'Game Boy',
-    gbc:        'GBC',
-    gba:        'GBA',
-    n64:        'N64',
-    nds:        'NDS',
-    vb:         'Virtual Boy',
-    segaMD:     'Mega Drive',
-    segaCD:     'Sega CD',
-    sega32x:    'Sega 32X',
-    segaMS:     'Master System',
-    segaGG:     'Game Gear',
-    segaSaturn: 'Saturn',
-    atari2600:  'Atari 2600',
-    atari7800:  'Atari 7800',
-    lynx:       'Lynx',
-    jaguar:     'Jaguar',
-    pce:        'PC Engine',
-    pcfx:       'PC-FX',
-    ngp:        'Neo Geo Pocket',
-    ws:         'WonderSwan',
-    coleco:     'ColecoVision',
-    vectrex:    'Vectrex',
-    '3do':      '3DO',
-    psx:        'PlayStation',
-    mame2003:   'Arcade',
-  };
+    <section id="empty-state" class="empty-state" hidden>
+      <div>NO GAMES FOUND</div>
+      <div class="empty-subtitle">Try another search or system filter.</div>
+    </section>
 
-  const EMULATORJS_CDN = 'https://cdn.emulatorjs.org/stable/data/';
+    <div id="stats" class="stats" aria-live="polite"></div>
+  </main>
 
-  let allGames = [];
-  let activeCore = 'all';
-  let activeSearch = '';
-  let currentEJS = null;
-
-  // ── games.json読み込み ──
-  async function loadGames() {
-    try {
-      const res = await fetch('games.json');
-      if (!res.ok) throw new Error('games.json not found');
-      allGames = await res.json();
-    } catch (e) {
-      allGames = [];
-      console.warn('games.json読み込み失敗:', e);
-    }
-    document.getElementById('loading').style.display = 'none';
-    buildFilterButtons();
-    renderGrid();
-  }
-
-  // ── フィルターボタン生成 ──
-  function buildFilterButtons() {
-    const cores = [...new Set(allGames.map(g => g.core).filter(Boolean))];
-    const bar = document.getElementById('filter-bar');
-    cores.forEach(core => {
-      const btn = document.createElement('button');
-      btn.className = 'filter-btn';
-      btn.dataset.core = core;
-      btn.textContent = CORE_LABELS[core] || core.toUpperCase();
-      bar.appendChild(btn);
-    });
-    bar.addEventListener('click', e => {
-      const btn = e.target.closest('.filter-btn');
-      if (!btn) return;
-      activeCore = btn.dataset.core;
-      bar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderGrid();
-    });
-    document.getElementById('search').addEventListener('input', e => {
-      activeSearch = e.target.value.trim().toLowerCase();
-      renderGrid();
-    });
-  }
-
-  // ── グリッド描画 ──
-  function renderGrid() {
-    const grid = document.getElementById('game-grid');
-    const empty = document.getElementById('empty-state');
-    const stats = document.getElementById('stats');
-    grid.innerHTML = '';
-
-    const filtered = allGames.filter(g => {
-      const coreMatch = activeCore === 'all' || g.core === activeCore;
-      const searchMatch = !activeSearch || g.title.toLowerCase().includes(activeSearch);
-      return coreMatch && searchMatch;
-    });
-
-    if (filtered.length === 0) {
-      empty.style.display = 'block';
-      stats.textContent = '';
-      return;
-    }
-    empty.style.display = 'none';
-    stats.textContent = `${filtered.length} / ${allGames.length} GAMES`;
-
-    filtered.forEach((game, i) => {
-      const card = document.createElement('div');
-      card.className = 'game-card';
-      card.style.animationDelay = `${Math.min(i * 30, 400)}ms`;
-
-      const thumbSrc = game.thumbnail
-        ? `thumbs/${game.thumbnail}`
-        : null;
-
-      card.innerHTML = `
-        <div class="thumb-wrap">
-          ${thumbSrc
-            ? `<img src="${thumbSrc}" alt="${game.title}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-            : ''}
-          <div class="no-thumb" style="display:${thumbSrc ? 'none' : 'flex'}">🕹️</div>
-          <div class="play-overlay">
-            <div class="play-icon">▶</div>
-          </div>
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-header">
+        <div class="modal-heading">
+          <div id="modal-title" class="modal-title">-</div>
+          <div id="modal-meta" class="modal-meta"></div>
         </div>
-        <div class="card-info">
-          <div class="card-title">${game.title}</div>
-          <div class="card-core">${CORE_LABELS[game.core] || (game.core || '?')}</div>
-        </div>
-      `;
+        <button id="close-btn" class="close-btn" type="button">CLOSE</button>
+      </div>
 
-      card.addEventListener('click', () => openGame(game));
-      grid.appendChild(card);
-    });
-  }
+      <div class="emulator-wrap">
+        <iframe
+          id="emulator-frame"
+          title="Emulator"
+          allow="autoplay; fullscreen; gamepad"
+          allowfullscreen
+          referrerpolicy="same-origin"
+        ></iframe>
+      </div>
+    </div>
+  </div>
 
-  // ── ゲーム起動 ──
-  function openGame(game) {
-    const modal = document.getElementById('modal');
-    document.getElementById('modal-title').textContent = game.title;
-    modal.classList.add('open');
-    document.body.style.overflow = 'hidden';
+  <div id="core-picker" class="core-picker" aria-hidden="true">
+    <div class="core-picker-panel" role="dialog" aria-modal="true" aria-labelledby="core-picker-title">
+      <div class="core-picker-kicker">LOCAL ROM</div>
+      <div id="core-picker-title" class="core-picker-title">SELECT SYSTEM</div>
+      <div id="core-picker-file" class="core-picker-file"></div>
+      <div id="core-picker-help" class="core-picker-help"></div>
+      <label class="core-picker-label" for="core-picker-select">SYSTEM / CORE</label>
+      <select id="core-picker-select" class="core-picker-select"></select>
+      <div class="core-picker-actions">
+        <button id="core-picker-cancel" class="picker-btn secondary" type="button">CANCEL</button>
+        <button id="core-picker-play" class="picker-btn primary" type="button">PLAY</button>
+      </div>
+    </div>
+  </div>
 
-    // 前のゲームのdivをリセット
-    const wrap = document.getElementById('game-div');
-    wrap.innerHTML = '';
-
-    const romPath = `roms/${game.rom}`;
-
-    window.EJS_player = '#game-div';
-    window.EJS_gameUrl = romPath;
-    window.EJS_core = game.core;
-    window.EJS_pathtodata = EMULATORJS_CDN;
-    window.EJS_startOnLoaded = true;
-    window.EJS_language = 'ja';
-    window.EJS_Buttons = {
-      playPause: true,
-      restart: true,
-      mute: true,
-      settings: true,
-      fullscreen: true,
-      saveState: true,
-      loadState: true,
-      screenRecord: false,
-      gamepad: true,
-      cheat: false,
-      volume: true,
-      saveSavFiles: true,
-      loadSavFiles: true,
-      quickSave: true,
-      quickLoad: true,
-      screenshot: true,
-      cacheManager: false,
-    };
-
-    // 既存のEJSスクリプトを削除して再ロード
-    const oldScript = document.getElementById('ejs-loader');
-    if (oldScript) oldScript.remove();
-
-    const script = document.createElement('script');
-    script.id = 'ejs-loader';
-    script.src = EMULATORJS_CDN + 'loader.js';
-    document.body.appendChild(script);
-  }
-
-  // ── モーダルを閉じる ──
-  document.getElementById('close-btn').addEventListener('click', closeModal);
-  document.getElementById('modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('modal')) closeModal();
-  });
-
-  function closeModal() {
-    const modal = document.getElementById('modal');
-    modal.classList.remove('open');
-    document.body.style.overflow = '';
-    document.getElementById('game-div').innerHTML = '';
-    const oldScript = document.getElementById('ejs-loader');
-    if (oldScript) oldScript.remove();
-  }
-
-  // ESCキーで閉じる
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-  });
-
-  // ── 起動 ──
-  loadGames();
-</script>
+  <footer>
+    POWERED BY <span>EMULATORJS</span>
+  </footer>
 </body>
 </html>
