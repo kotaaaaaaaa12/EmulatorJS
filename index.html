@@ -154,5 +154,33 @@
       load(0);
     })();
   </script>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById("threads-toggle");
+      const status = document.getElementById("threads-status");
+      if (!toggle || !status) return;
+
+      const syncThreadsStatus = () => {
+        let text = "UNAVAILABLE";
+        let className = "thread-status unavailable";
+
+        if (!toggle.disabled) {
+          text = toggle.checked ? "ENABLED" : "DISABLED";
+          className = toggle.checked ? "thread-status available" : "thread-status";
+        }
+
+        if (status.textContent !== text) status.textContent = text;
+        if (status.className !== className) status.className = className;
+      };
+
+      toggle.addEventListener("change", syncThreadsStatus);
+
+      const observer = new MutationObserver(syncThreadsStatus);
+      observer.observe(status, { childList: true, subtree: true });
+
+      queueMicrotask(syncThreadsStatus);
+    })();
+  </script>
 </body>
 </html>
