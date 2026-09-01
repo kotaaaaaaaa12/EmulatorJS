@@ -154,3 +154,10 @@ Deploy the *contents* of this directory as the Pages output root so that `index.
 ## Cloudflare Pages deployment root
 
 The Pages output directory must be the directory containing `index.html`, `_headers`, `assets/`, `data/`, and `pages/`. Do not publish the parent directory. This build includes a visible boot probe: if JavaScript fails, `LOADING RETRO VAULT…` remains visible instead of a blank page.
+
+## Cloudflare Pages v3 diagnostics
+
+- `_redirects` routes application paths to `/index.html`.
+- `version.txt` identifies this deployment as `retro-vault-cloudflare-v3-20260901`.
+- `index.html` unregisters legacy `coi-sw.js` service workers left by older builds.
+- Threads should come from the `_headers` COOP/COEP response headers, not from a service worker.

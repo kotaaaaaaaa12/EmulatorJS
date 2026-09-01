@@ -8,9 +8,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/css/style.css?v=20260901-7" onerror="this.onerror=null;this.href='./assets/css/style.css?v=20260901-7'">
+  <link rel="stylesheet" href="/assets/css/style.css?v=20260901-8" onerror="this.onerror=null;this.href='./assets/css/style.css?v=20260901-8'">
 </head>
 <body>
+  <script>
+    // Remove legacy COI service workers from older Retro Vault builds.
+    (() => {
+      try {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then(registrations => {
+            for (const registration of registrations) {
+              const url = registration.active?.scriptURL || registration.waiting?.scriptURL || registration.installing?.scriptURL || "";
+              if (url.includes("coi-sw.js")) registration.unregister();
+            }
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    })();
+  </script>
   <div id="boot-probe" style="position:fixed;z-index:99999;left:12px;bottom:12px;max-width:calc(100vw - 24px);padding:10px 12px;background:#111;color:#fff;border:1px solid #444;font:12px/1.4 ui-monospace,monospace">LOADING RETRO VAULT…</div>
   <header class="site-header">
     <div class="logo">RETRO VAULT</div>
@@ -117,8 +132,8 @@
       });
 
       const sources = [
-        "/assets/js/app.js?v=20260901-7",
-        "./assets/js/app.js?v=20260901-7"
+        "/assets/js/app.js?v=20260901-8",
+        "./assets/js/app.js?v=20260901-8"
       ];
 
       const load = index => {
